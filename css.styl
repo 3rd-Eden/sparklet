@@ -44,6 +44,47 @@
     opacity: 1;
   }
 
+  .x-axis .tick {
+    stroke: white;
+    opacity: .25 !important;
+  }
+
+  .x-axis .tick line {
+    stroke: white;
+    opacity: 0 !important;
+  }
+
+  .y-axis .tick:first-child {
+    stroke: white;
+    opacity: 0 !important;
+  }
+
+  .x-axis path {
+    stroke-width: 2 !important;
+  }
+
+  .y-axis .tick {
+    stroke: white;
+    opacity: 0.25 !important;
+  }
+
+  .y-axis .tick:first-child {
+    stroke: white;
+  }
+
+  .y-axis path {
+    stroke-width: 0;
+    opacity: 0 !important;
+  }
+
+  .y-axis .tick text {
+    font-size: 12px;
+  }
+
+  .x-axis .tick text {
+    font-size: 12px;
+  }
+
   .chart-tooltip {
     position: absolute;
     background: white;

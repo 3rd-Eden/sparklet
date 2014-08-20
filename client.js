@@ -134,6 +134,60 @@ pipe.once('sparklet:initialize', function initialize(pagelet) {
       });
 
     //
+    // Optionally add the xAxis
+    //
+    if (this.options.xaxis || true) {
+      var x = visual.append('svg:g')
+        .attr('class', 'x-axis')
+        .attr('transform', 'translate(0,'+ (this.height - this.margin.y) +')')
+        .call(
+          d3.svg.axis()
+            .scale(this.x)
+            .orient('bottom')
+            .ticks(5)
+            .tickSize(-this.height +(this.margin.y * 2), 0, 0)
+            .tickFormat(function render(epoch) {
+              return d3.time.format('%d %b')(new Date(epoch));
+            })
+        );
+
+      x.selectAll('text')
+        .style('text-anchor', 'middle')
+        .attr('transform', 'translate(0,5)')
+        .attr('fill', 'white')
+        .attr('stroke-width', '0');
+    }
+
+    //
+    // Optionally add the yAxis
+    //
+    if (this.options.yaxis) {
+      var y = visual.append('svg:g')
+        .attr('class', 'y-axis')
+        .attr('transform', 'translate('+ this.margin.x +',0)')
+        .attr('stroke', 'white')
+        .call(
+          d3.svg.axis()
+            .scale(this.y)
+            .orient('left')
+            .ticks(4)
+            .tickSize(-this.width +(this.margin.x * 2), 0, 0)
+            .tickFormat(function render(percentage) {
+              return percentage +'%';
+            })
+        );
+
+      y.selectAll('line')
+        .style('stroke-dasharray', '3, 3');
+
+      y.selectAll('text')
+        .style('text-anchor', 'start')
+        .attr('transform', 'translate(3,12)')
+        .attr('fill', 'white')
+        .attr('stroke-width', '0');
+    }
+
+    //
     // Add points to the ends of the spark lines.
     //
     group.selectAll('.point')
@@ -210,7 +264,8 @@ pipe.once('sparklet:initialize', function initialize(pagelet) {
       .attr('width', this.width / this.rows.length)
       .attr('height', this.height)
       .on('mouseenter', function hover(row, index) {
-        $('.chart-tooltip[data-index="'+ index +'"]').addClass('hover');
+        sparkline.$.find('.chart-tooltip[data-index="'+ index +'"]').addClass('hover');
+
         $(this)
           .parent()
           .parent()
@@ -221,7 +276,7 @@ pipe.once('sparklet:initialize', function initialize(pagelet) {
           );
       })
       .on('mouseleave', function(row, index) {
-        $('.chart-tooltip').removeClass('hover');
+        sparkline.$.find('.chart-tooltip').removeClass('hover');
         $(this)
           .parent()
           .parent()
