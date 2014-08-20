@@ -4,6 +4,13 @@ pipe.once('sparklet:initialize', function initialize(pagelet) {
   /**
    * Create the client-side sparklets.
    *
+   * Options:
+   *
+   * - x: X margin.
+   * - y: Y margin.
+   * - xaxis: Add xaxis.
+   * - yaxis: Add yaxis.
+   *
    * @constructor
    * @param {HTMLElement} element DOM element where the graph should be placed.
    * @param {Array} rows Data to display in the graph.
@@ -16,6 +23,10 @@ pipe.once('sparklet:initialize', function initialize(pagelet) {
     var $el = $(element).find('.sparklet');
 
     options = options || {};
+    options.x = pagelet.data.x || 30;
+    options.y = pagelet.data.y || 20;
+    options.yaxis = pagelet.data.yaxis || false;
+    options.xaxis = pagelet.data.xaxis || false;
 
     this.formatter = d3.time.format(pagelet.data.format);
     this.placeholder = d3.select($el[0]).append('div');
@@ -27,8 +38,8 @@ pipe.once('sparklet:initialize', function initialize(pagelet) {
     this.width = $el.width();
     this.height = $el.height();
     this.margin = {
-      x: options.x || 30,
-      y: options.y || 20
+      x: options.x,
+      y: options.y
     };
 
     this.calculate().render();
@@ -136,7 +147,7 @@ pipe.once('sparklet:initialize', function initialize(pagelet) {
     //
     // Optionally add the xAxis
     //
-    if (this.options.xaxis || true) {
+    if (this.options.xaxis) {
       var x = visual.append('svg:g')
         .attr('class', 'x-axis')
         .attr('transform', 'translate(0,'+ (this.height - this.margin.y) +')')
