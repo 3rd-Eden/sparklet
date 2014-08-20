@@ -63,7 +63,15 @@ Pagelet.extend({
    * @api private
    */
   get: function get(output) {
-    var data = { gradient: this.gradient, format: this.format, rows: [] }
+    var data = {
+          gradient: this.gradient,
+          format: this.format,
+          xaxis: this.xaxis,
+          yaxis: this.yaxis,
+          x: this.x,
+          y: this.y,
+          rows: []
+        }
       , pagelet = this;
 
     //
