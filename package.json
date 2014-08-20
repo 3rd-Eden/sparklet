@@ -1,0 +1,28 @@
+{
+  "name": "sparklet",
+  "version": "0.0.0",
+  "description": "Sparklet is a sparkline pagelet for BigPipe",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/3rd-Eden/sparklet"
+  },
+  "keywords": [
+    "spark",
+    "graph",
+    "sparkline",
+    "graphs",
+    "d3",
+    "pagelet",
+    "bigpipe"
+  ],
+  "author": "Arnout Kazemier",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/3rd-Eden/sparklet/issues"
+  },
+  "homepage": "https://github.com/3rd-Eden/sparklet",
+  "dependencies": {
+    "pagelet": "0.7.x"
+  }
+}

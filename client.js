@@ -1,0 +1,241 @@
+pipe.once('sparklet:initialize', function initialize(pagelet) {
+  'use strict';
+
+  /**
+   * Create the client-side sparklets.
+   *
+   * @constructor
+   * @param {HTMLElement} element DOM element where the graph should be placed.
+   * @param {Array} rows Data to display in the graph.
+   * @param {Object} options Configuration.
+   * @api private
+   */
+  function Sparklet(element, rows, options) {
+    if (!this) return new Spark(element, rows, options);
+
+    var $el = $(element).find('.sparklet');
+
+    options = options || {};
+
+    this.formatter = d3.time.format(pagelet.data.format);
+    this.placeholder = d3.select($el[0]).append('div');
+    this.rows = this.prep(rows);
+
+    this.$ = $el;
+    this.options = options;
+    this.id = Sparklet.id++;
+    this.width = $el.width();
+    this.height = $el.height();
+    this.margin = {
+      x: options.x || 30,
+      y: options.y || 20
+    };
+
+    this.calculate().render();
+  }
+
+  /**
+   * Unique id per sparklet.
+   *
+   * @type {Number}
+   * @private
+   */
+  Sparklet.id = 0;
+
+  /**
+   * Prepare the data structure by ensuring that we have valid date objects and
+   * values for the graph.
+   *
+   * @param {Array} rows Data to display.
+   * @returns {Array} mapped rows.
+   * @api private
+   */
+  Sparklet.prototype.prep = function prep(rows) {
+    var spark = this;
+
+    /**
+     * Simply map all the values.
+     *
+     * @param {Object} row The row of the dataset.
+     * @returns {Number} The value.
+     * @api private
+     */
+    function values(row) {
+      return +row.value;
+    }
+
+    var percentage = d3.scale.linear().domain([
+      d3.min(rows, values),
+      d3.max(rows, values)
+    ]).range([0, 100]);
+
+    return rows.map(function map(row) {
+      return {
+        percentage: percentage(+row.value).toFixed(2),
+        date: spark.formatter.parse(row.date),
+        value: +row.value
+      };
+    });
+  };
+
+  /**
+   * Calculate the different sizes and margins so we can render the sparkline
+   * correctly.
+   *
+   * @returns {Sparklet}
+   * @api private
+   */
+  Sparklet.prototype.calculate = function calculate() {
+    var margin = 100 / this.rows.length;
+
+    this.y = d3.scale.linear().domain([0, 100]).range([
+      this.height - this.margin.y, this.margin.y
+    ]);
+
+    this.x = d3.scale.linear().domain(d3.extent(this.rows, function extent(row) {
+      return row.date;
+    })).range([this.margin.x, this.width - this.margin.y ]);
+
+    this.gradient = d3.scale.linear().domain([0, 5, 25, 40, 75, 100]).range(
+      pagelet.data.gradient
+    );
+
+    this.percentage = d3.scale.linear().domain([0, this.rows.length - 1]).range([
+      margin, 100 - margin
+    ]);
+
+    return this;
+  };
+
+  /**
+   * Render the Sparkline in the dom elements.
+   *
+   * @api private
+   */
+  Sparklet.prototype.render = function render() {
+    var sparkline = this;
+
+    var visual = this.placeholder
+      .append('svg:svg')
+      .attr('width', this.width)
+      .attr('height', this.height);
+
+    var group = visual.append('svg:g')
+      .attr('stroke', 'url(#sparkline-gradient-'+ this.id +')')
+      .attr('fill', 'url(#sparkline-gradient-'+ this.id +')');
+
+    var line = d3.svg.line()
+      .interpolate('cardinal')
+      .x(function render(row) {
+        return sparkline.x(row.date);
+      })
+      .y(function render(row) {
+        return sparkline.y(row.percentage);
+      });
+
+    //
+    // Add points to the ends of the spark lines.
+    //
+    group.selectAll('.point')
+      .data(this.rows)
+      .enter().append('svg:circle')
+      .attr('class', function render(row, index) {
+        return (index === (sparkline.rows.length - 1) || index === 0)
+          ? 'point end'
+          : 'point';
+      })
+      .attr('cx', function render(row) {
+        return sparkline.x(row.date);
+      })
+      .attr('cy', function render(row) {
+        return sparkline.y(row.percentage);
+      })
+      .attr('r',  function render(row, index) {
+        return (index === (sparkline.rows.length - 1) || index === 0) ? 5 : 3;
+      });
+
+    group.append('svg:path').attr('d', line(this.rows));
+
+    //
+    // Add points for every row in spark line.
+    //
+    for (var i = 0, l = this.rows.length, tip; i < l; i++) {
+      this.placeholder
+        .append('div')
+        .attr('class', 'chart-tooltip')
+        .attr('data-index', i)
+        .html(this.rows[i].value);
+
+      tip = $('.chart-tooltip[data-index="'+ i +'"');
+      tip.css({
+        left: (this.x(this.rows[i].date) - (tip.width() / 2)) +'px',
+        top: (this.y(this.rows[i].percentage) - 30) + 'px'
+      });
+    }
+
+    //
+    // Add gradient.
+    //
+    visual
+      .append('svg:defs')
+      .append('svg:linearGradient')
+        .attr('id', 'sparkline-gradient-'+ this.id)
+        .attr('x1', '0%')
+        .attr('y1', '0%')
+        .attr('x2', '100%')
+        .attr("y2", '0%')
+        .attr('gradientUnits', 'userSpaceOnUse')
+        .selectAll('.gradient-stop')
+        .data(this.rows)
+        .enter()
+        .append('svg:stop').attr('offset', function render(row, i) {
+          return sparkline.percentage(i) +'%';
+        }).attr('style', function render(row) {
+          return 'stop-color:' + sparkline.gradient(row.percentage) + ';stop-opacity:1';
+        });
+
+    //
+    // And finally create larger invisible hit zones so you don't have to :hover
+    // the line to trigger a tooltip.
+    //
+    group.selectAll('.bar-rect')
+      .data(this.rows)
+      .enter()
+      .append('svg:rect')
+      .attr('class', 'bar-rect')
+      .attr('x', function render(row) {
+        return sparkline.x(row.date) - (sparkline.width / sparkline.rows.length / 2);
+      })
+      .attr('y', 0)
+      .attr('width', this.width / this.rows.length)
+      .attr('height', this.height)
+      .on('mouseenter', function hover(row, index) {
+        $('.chart-tooltip[data-index="'+ index +'"]').addClass('hover');
+        $(this)
+          .parent()
+          .parent()
+          .find('.point:eq('+ index +')')
+          .attr('class', index === 0 || index === (sparkline.rows.length -1)
+              ? 'end point hover'
+              : 'point hover'
+          );
+      })
+      .on('mouseleave', function(row, index) {
+        $('.chart-tooltip').removeClass('hover');
+        $(this)
+          .parent()
+          .parent()
+          .find('.point:eq('+ index +')')
+          .attr('class', index === 0 || index === (sparkline.rows.length - 1)
+            ? 'end point'
+            : 'point'
+          );
+      });
+
+    return this;
+  };
+
+  $(pagelet.placeholders).each(function each() {
+    var spark = new Sparklet(this, pagelet.data.rows);
+  });
+});
