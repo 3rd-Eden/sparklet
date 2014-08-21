@@ -1,6 +1,6 @@
 {
   "name": "sparklet",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Sparklet is a sparkline pagelet for BigPipe",
   "main": "index.js",
   "repository": {
