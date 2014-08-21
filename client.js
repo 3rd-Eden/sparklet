@@ -165,7 +165,6 @@ pipe.once('sparklet:initialize', function initialize(pagelet) {
       x.selectAll('text')
         .style('text-anchor', 'middle')
         .attr('transform', 'translate(0,5)')
-        .attr('fill', 'white')
         .attr('stroke-width', '0');
     }
 

@@ -35,7 +35,7 @@ Pagelet.extend({
    * @type {Array}
    * @private
    */
-  query: ['format', 'gradient', 'rows'],
+  query: ['format', 'gradient', 'rows', 'x', 'y', 'xaxis', 'yaxis'],
 
   /**
    * Which functions can be exposed to the client.
@@ -84,7 +84,9 @@ Pagelet.extend({
     this.fetch(function fetched(err, rows) {
       if (err) return output(err);
 
-      data.rows = rows || data.rows;
+      if (Array.isArray(rows)) data.rows = rows || data.rows;
+      else if ('object' === typeof data) pagelet.merge(data, rows);
+
       return output(err, data);
     });
   }
