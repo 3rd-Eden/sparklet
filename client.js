@@ -75,10 +75,10 @@ pipe.once('sparklet:initialize', function initialize(pagelet) {
       return +row.value;
     }
 
-    var percentage = d3.scale.linear().domain([
-      d3.min(rows, values),
-      d3.max(rows, values)
-    ]).range([0, 100]);
+    this.min = d3.min(rows, values);
+    this.max = d3.max(rows, values);
+
+    var percentage = d3.scale.linear().domain([ this.min, this.max ]).range([0, 100]);
 
     return rows.map(function map(row) {
       return {
@@ -173,6 +173,8 @@ pipe.once('sparklet:initialize', function initialize(pagelet) {
     // Optionally add the yAxis
     //
     if (this.options.yaxis) {
+      var percentage = d3.scale.linear().domain([0, 100]).range([this.min, this.max]);
+
       var y = visual.append('svg:g')
         .attr('class', 'y-axis')
         .attr('transform', 'translate('+ this.margin.x +',0)')
@@ -183,8 +185,8 @@ pipe.once('sparklet:initialize', function initialize(pagelet) {
             .orient('left')
             .ticks(4)
             .tickSize(-this.width +(this.margin.x * 2), 0, 0)
-            .tickFormat(function render(percentage) {
-              return percentage +'%';
+            .tickFormat(function render(amount) {
+              return percentage(amount);
             })
         );
 
