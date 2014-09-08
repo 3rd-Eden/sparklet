@@ -75,6 +75,14 @@ pipe.once('sparklet:initialize', function initialize(pagelet) {
       return +row.value;
     }
 
+    //
+    // Make sure that we have at last one single data point. If we don't have
+    // any data assume it's missing and start with 0.
+    //
+    if (!rows.length) {
+      rows.push({ value: 0, date: spark.formatter(new Date) });
+    }
+
     this.min = d3.min(rows, values);
     this.max = d3.max(rows, values);
 
