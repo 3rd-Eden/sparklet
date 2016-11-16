@@ -23,6 +23,6 @@
   },
   "homepage": "https://github.com/3rd-Eden/sparklet",
   "dependencies": {
-    "pagelet": "0.8.x"
+    "pagelet": "~0.9.3"
   }
 }
